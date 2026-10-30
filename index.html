@@ -409,7 +409,6 @@ function filtersHTML(){
    +`<button class="reset" data-act="reset">Скинути всі фільтри</button>`;
 }
 // "when" filter sits in the header of the first feed section
-const whenHTML=()=>`<div class="seg" role="group" aria-label="Коли">`+[['all','Будь-коли'],['7','7 днів'],['30','30 днів']].map(([k,l])=>`<button data-act="when" data-w="${k}" aria-pressed="${S.when===k}">${l}</button>`).join('')+`</div>`;
 function activeN(){ return (S.path.length?1:0)+S.topics.size+(S.when!=='all'?1:0)+(S.fut&&S.past?0:1)+(S.q.trim()?1:0); }
 function chipsHTML(){
   const c=[];
@@ -497,9 +496,9 @@ function sideWrap(inner){
 function page(){
   const L=lists();
   let feed = `<div><input class="search" id="q" type="search" aria-label="Пошук" placeholder="Пошук: реколекції, прощі, святий Миколай…" value="${esc(S.q)}">${chipsHTML()}</div>`;
-  if (!L.all.length) feed += `<div class="toprow">${whenHTML()}</div>` + emptyHTML;
+  if (!L.all.length) feed += emptyHTML;
   else {
-    const sec = (h, items) => `<section><div class="sec-h"><h2>${h}</h2>${h===(L.fut.length?'Анонси':'Новини')?whenHTML():''}</div><div class="list">${items.filter(i=>i.promo).map(evHTML).join('')}<div class="today"><b><i></i>${todayStr}</b></div>${byDay(items.filter(i=>!i.promo))}</div></section>`;
+    const sec = (h, items) => `<section><div class="sec-h"><h2>${h}</h2></div><div class="list">${items.filter(i=>i.promo).map(evHTML).join('')}<div class="today"><b><i></i>${todayStr}</b></div>${byDay(items.filter(i=>!i.promo))}</div></section>`;
     if (L.fut.length) feed += sec('Анонси', L.fut);
     if (L.past.length) feed += sec('Новини', L.past);
   }
