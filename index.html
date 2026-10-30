@@ -1839,11 +1839,10 @@ function submitCreate(){
 }
 // ---- map (Leaflet + OpenStreetMap / CARTO tiles) ----
 const MAPS = {};
-const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+// Google Maps by default on every device; Apple Maps stays as the secondary link
 function routeHTML(ll, name){
   const g=`https://www.google.com/maps/dir/?api=1&destination=${ll[0]},${ll[1]}`, a=`https://maps.apple.com/?daddr=${ll[0]},${ll[1]}&q=${encodeURIComponent(name)}`;
-  const [main, alt, altName] = isApple ? [a, g, 'Google Картах'] : [g, a, 'Apple Картах'];
-  return `<div class="route"><a class="btn" href="${main}" target="_blank" rel="noopener">Прокласти маршрут</a><a class="alt" href="${alt}" target="_blank" rel="noopener">або в ${altName}</a></div>`;
+  return `<div class="route"><a class="btn" href="${g}" target="_blank" rel="noopener">Прокласти маршрут</a><a class="alt" href="${a}" target="_blank" rel="noopener">або в Apple Картах</a></div>`;
 }
 function drawMap(id, big){
   const el=document.getElementById(id); if (!el) return;
