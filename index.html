@@ -352,7 +352,13 @@ const PLACES = {
   ca:{n:'Канада', c:{
     toronto:{n:'Торонто', p:{josaphat:'Катедра святого Йосафата', spp:'Святих апостолів Петра і Павла', illi:'Святого пророка Іллі', eparchy:'Торонтська єпархія', vocations:'Служіння покликань Торонтської єпархії', pokrova:'Покрови Пресвятої Богородиці', nicholas:'Святого Миколая', eucharist:'Пресвятої Євхаристії', dormition:'Успіння Пресвятої Богородиці (Bathurst)', demetrius:'Святого Димитрія, Етобіко', shepherd:'Христа Доброго Пастиря, Етобіко', volodymyr:'Святого Володимира, Торнгіл', joseph:'Святого Йосифа, Оквіл', pokrovab:'Покрови Пресвятої Богородиці, Берлінгтон', yuriya:'Святого Юрія, Ошава', masi:'Інститут Шептицького (MASI)', hromada:'Українська громада', other:'Інші храми'}},
     mississauga:{n:'Міссісага', p:{uspinnia:'Успіння Пресвятої Богородиці'}},
-    winnipeg:{n:'Вінніпег', p:{cathedral:'Катедра святих Володимира й Ольги'}}}}
+    winnipeg:{n:'Вінніпег', p:{cathedral:'Катедра святих Володимира й Ольги'}},
+    edmonton:{n:'Едмонтон', p:{basil:'Церква святого Василія Великого', seminary:'Духовна семінарія Святого Духа', ntc:'Newman Theological College', providence:'Providence Renewal Centre'}}}},
+  us:{n:'США', c:{
+    philadelphia:{n:'Філадельфія', p:{cathedral:'Катедра Непорочного Зачаття'}}}},
+  it:{n:'Італія', c:{
+    padova:{n:'Падуя', p:{antonio:'Базиліка святого Антонія'}},
+    bari:{n:'Барі', p:{nicola:'Базиліка святого Миколая'}}}}
 };
 // map points (from OpenStreetMap); an event goes on the map when its place line contains one of these names
 const GEO = [
@@ -380,7 +386,12 @@ const GEO = [
   ['334 Queen St W', 43.64941,-79.39494],
   ['Пам’ятник жертвам Голодомору', 43.63581,-79.40991],
   ['516 The Kingsway', 43.67345,-79.54799],
-  ['21 Old Mill Rd', 43.65095,-79.49343]
+  ['21 Old Mill Rd', 43.65095,-79.49343],
+  ['7007 109 St NW', 53.50721,-113.51112],
+  ['3505 119 St NW', 53.46317,-113.53389],
+  ['830 N Franklin St', 39.96635,-75.15038],
+  ['Piazza del Santo', 45.40146,11.88085],
+  ['Largo Abate Elia', 41.13027,16.87019]
 ];
 const geoOf = it => { const g=GEO.find(([k])=>(it.place||'').includes(k)); return g ? [g[1],g[2]] : null; };
 const TOPICS = ['Богослужіння','Свята','Реколекції','Прощі та паломництва','Школа християнського життя','Спільноти','Проповіді','Духовна музика','Культура'];
@@ -486,6 +497,27 @@ const ITEMS = [
   {d:'2026-11-27', d2:'2026-11-29', path:['ua','ternopil','galilea'], topic:'Школа християнського життя', title:'Курс «Нове життя»', img:'https://bvclalhwxduqxxyizbmd.supabase.co/storage/v1/object/public/course-banners/3cdc64e9-d05e-440d-8467-6954c9fd6a4e/1790273832658.jpg',
    text:'Вступний курс спільноти «Галилея» для тих, хто сумнівається, шукає або хоче відродити віру: спільне читання й розважання над Святим Письмом у теплій родинній атмосфері.',
    place:'Тернопіль', src:['Галилея','https://galilea.com.ua/events/de892884-dfa4-4639-bb88-131d9eb998a7']},
+  {d:'2026-10-31', t:'10:00', t2:'11:00', path:['ca','edmonton','basil'], topic:'Богослужіння', title:'Архиєрейська Літургія з українськими католицькими єпископами Канади', img:'https://eeparchy.com/_next/image?url=https%3A%2F%2Fsaeparchylivebf2ef4.blob.core.windows.net%2Fmedia%2FScreenshot%25202026-10-15%2520at%252010.51.08.png&w=1920&q=75',
+   text:'Двомовна Архиєрейська Божественна Літургія з усіма українськими католицькими єпископами Канади з нагоди нових програм східного богослов’я та церковної музики в Newman Theological College.',
+   place:'Церква святого Василія Великого, 7007 109 St NW, Едмонтон', lang:'українська й англійська', src:['Едмонтонська єпархія','https://eeparchy.com/events/hierarchical-divineliturgy-ukrainian-catholicbishops-canada']},
+  {d:'2026-11-06', t:'18:30', d2:'2026-11-07', t2:'17:30', path:['ca','edmonton','seminary'], topic:'Школа християнського життя', title:'Чоловіча конференція «Покликані бути святими»', img:'https://eeparchy.com/_next/image?url=https%3A%2F%2Fsaeparchylivebf2ef4.blob.core.windows.net%2Fmedia%2Fexec-bfa8ac58-d81d-45dd-a942-6a5ec3f4892b.png&w=1920&q=75',
+   text:'Вихідні для чоловіків від 16 років: доповіді, розмови, молитва й братерство. Тема — як слова, рухи й ритм Божественної Літургії формують нашу молитву і життя. Попередніх знань не потрібно.',
+   place:'Духовна семінарія Святого Духа, 12909 113 Ave NW, Едмонтон', lang:'англійська', form:'https://tinyurl.com/Called2BHoly2026', src:['Едмонтонська єпархія','https://eeparchy.com/events/mens-conference-event-2026']},
+  {d:'2026-11-19', t:'18:00', t2:'19:45', path:['ca','edmonton','ntc'], topic:'Реколекції', title:'Онлайн-реколекції «З нами Бог» перед Різдвом', img:'https://eeparchy.com/_next/image?url=https%3A%2F%2Fsaeparchylivebf2ef4.blob.core.windows.net%2Fmedia%2FShot-of-building-1024x682.jpg.webp&w=1920&q=75',
+   text:'Вечір роздумів над Різдвом Христовим у світлі Отців Церкви з о. д-ром Данилом Куцем. Час едмонтонський (MST). Організатор — студентська асоціація Newman Theological College.',
+   place:'Онлайн (Microsoft Teams)', lang:'англійська', form:'https://forms.gle/DypWLAVcGpLBBmEs6', src:['Едмонтонська єпархія','https://eeparchy.com/events/god-with-us-nativity-mini-retreat-2026']},
+  {d:'2026-11-29', t:'13:00', path:['it','padova','antonio'], topic:'Прощі та паломництва', title:'Проща до Падуї, до мощей святого Антонія', img:'https://esarcato-apostolico-ucraino.it/pub/news/464af5c1e4e73771.jpg',
+   text:'Архиєрейська Божественна Літургія в базиліці святого Антонія, яку очолить владика Григорій Комар, апостольський адміністратор екзархату в Італії. Можна помолитися біля мощей святого. Прощу організовує Венеціанський деканат.',
+   place:'Базиліка святого Антонія, Piazza del Santo, 11, Падуя', contact:'о. Іван Чверенчук, +39 320 353 6471', src:['Апостольський екзархат в Італії','https://esarcato-apostolico-ucraino.it/uk/data/venetsianskyy-dekanat-zaproshue-na-proshchu-do-padovy-1912/']},
+  {d:'2026-12-11', t:'19:00', d2:'2026-12-13', t2:'13:30', path:['ca','edmonton','providence'], topic:'Реколекції', title:'Реколекції перед Різдвом із владикою Давидом Мотюком', img:'https://eeparchy.com/_next/image?url=https%3A%2F%2Fsaeparchylivebf2ef4.blob.core.windows.net%2Fmedia%2FScreenshot%25202026-10-22%2520at%252011.14.12.png&w=1920&q=75',
+   text:'Реколекції з проживанням «Молитва з іконою»: готуємося до Різдва, споглядаючи ікону Різдва Христового. Веде єпископ Едмонтонський Давид Мотюк.',
+   place:'Providence Renewal Centre, 3505 119 St NW, Едмонтон', lang:'англійська', cost:'225 $ без ночівлі, 300 $ одномісна кімната, 350 $ кімната з вигодами (канадські долари)', form:'https://providencerenewal.ca/tc-events/praying-with-icons-preparing-for-the-nativity-of-our-lord-event-17350/', src:['Едмонтонська єпархія','https://eeparchy.com/events/advent-2026']},
+  {d:'2026-12-13', t:'13:45', path:['it','bari','nicola'], topic:'Прощі та паломництва', title:'Паломництво до Барі, до мощей святого Миколая', img:'https://esarcato-apostolico-ucraino.it/pub/news/cf0a9e2a54238f31.jpg',
+   text:'Архиєрейська Божественна Літургія в базиліці святого Миколая, потім акафіст біля гробу святого в крипті, мирування і зустріч зі святим Миколаєм з подарунками для дітей і дорослих. Організатор — Неаполітанський деканат.',
+   place:'Базиліка святого Миколая, Largo Abate Elia, 13, Барі', src:['Апостольський екзархат в Італії','https://esarcato-apostolico-ucraino.it/uk/data/apostolskyy-ekzarhat-zaproshue-ukrayntsiv-v-italiy-na-palomnytstvo-do-m-bari-1187/']},
+  {d:'2026-12-20', t:'10:00', path:['us','philadelphia','cathedral'], topic:'Духовна музика', title:'«Українське Різдво»: капела бандуристів у Філадельфії', img:'https://ukrcatholic.org/fileadmin/user_upload/News_media_files/2026/October/UBC_Christmas2026_Philadelphia_Postcard__1_.jpg',
+   text:'О 10:00 Архиєрейська Божественна Літургія з митрополитом Борисом Ґудзяком, о 14:30 різдвяний концерт Української капели бандуристів Північної Америки.',
+   place:'Катедра Непорочного Зачаття, 830 N Franklin St, Філадельфія', cost:'вхід вільний, добровільні пожертви', form:'https://form-renderer-app.donorperfect.io/give/archeparchy-of-philadelphia/2026-christmas-bandura-concert', src:['Філадельфійська архиєпархія','https://ukrcatholic.org/events/a-ukrainian-christmas-ukrainian-bandurist-chorus-concert-in-philadelphia']},
 ].map(x => ({...x, date:new Date(x.d+'T12:00'), fut:new Date(x.d+'T12:00') >= TODAY}));
 
 const S = {path:[], d1:null, d2:null, calM:new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), fut:true, past:true, lit:false, litN:7, litView:'days', langs:new Set(['u','e','x']), topics:new Set(), q:'', whereQ:'', whereOpen:false, side:false};
