@@ -178,7 +178,6 @@ h3.cap{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.07em;text-t
 .lcard dd{margin:0;font-variant-numeric:tabular-nums}
 .lcard .pl{font-size:13px;color:var(--muted)}
 .lcard .pl a{color:var(--blue)}
-.lviews{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
 .none{border:1px dashed var(--line);border-radius:var(--r);padding:28px;text-align:center;color:var(--muted)}
 
 /* dialogs */
@@ -465,7 +464,7 @@ function litHTML(){
   const ds=litDays();
   const views=`<div class="seg" role="group" aria-label="Як показати">`+[['days','По днях'],['parish','По парафіях']].map(([k,l])=>`<button data-act="litview" data-k="${k}" aria-pressed="${S.litView===k}">${l}</button>`).join('')+`</div>`;
   if (S.litView==='parish') return litCardsHTML(views);
-  const head=`<div class="sec-h"><h2>Літургії</h2><div class="lviews">${views}<div class="seg" role="group" aria-label="Коли">`+[[1,'Сьогодні'],[7,'7 днів']].map(([n,l])=>`<button data-act="litn" data-w="${n}" aria-pressed="${S.litN===n}">${l}</button>`).join('')+`</div></div></div>`;
+  const head=`<div class="sec-h"><h2>Літургії на 7 днів</h2>${views}</div>`;
   if (!ds.length) return `<section>${head}<div class="none">За цими фільтрами Літургій немає. Спробуйте інше місце або мову.</div></section>`;
   return `<section>${head}<div class="list">`+ds.map(([d,rows])=>(days(d)===0?`<div class="today"><b><i></i>${todayStr}</b></div>`:`<div class="today day"><b>${dayLabel(d)}</b></div>`)
     +rows.map(({l,t,lang,note})=>`<div class="lrow"><div class="tm">${t}</div><div style="min-width:0"><h4>${esc(litName(l))}${note?` <span class="pl">· ${esc(note)}</span>`:''}</h4><div class="pl">${esc(l.a)} · <a href="${l.src[1]}" target="_blank" rel="noopener">${esc(l.src[0])}</a></div></div>${LANG[lang]?`<span class="lng${lang==='e'?' en':''}">${LANG[lang]}</span>`:''}</div>`).join('')).join('')
@@ -508,7 +507,6 @@ function filtersHTML(){
    +`<button class="reset" data-act="reset">Скинути всі фільтри</button>`;
 }
 // "when" filter sits in the header of the first feed section
-const whenHTML=()=>`<div class="seg" role="group" aria-label="Коли">`+[['all','Будь-коли'],['7','7 днів'],['30','30 днів']].map(([k,l])=>`<button data-act="when" data-w="${k}" aria-pressed="${S.when===k}">${l}</button>`).join('')+`</div>`;
 function activeN(){ return (S.lit?1+(3-S.langs.size):0)+(S.path.length?1:0)+S.topics.size+(S.when!=='all'?1:0)+(S.fut&&S.past?0:1)+(S.q.trim()?1:0); }
 function chipsHTML(){
   const c=[];
@@ -597,9 +595,9 @@ function page(){
   const L=lists();
   let feed = `<div><input class="search" id="q" type="search" aria-label="Пошук" placeholder="Пошук: реколекції, прощі, святий Миколай…" value="${esc(S.q)}">${chipsHTML()}</div>`;
   if (S.lit) feed += litHTML();
-  else if (!L.all.length) feed += `<div class="toprow">${whenHTML()}</div>` + emptyHTML;
+  else if (!L.all.length) feed += emptyHTML;
   else {
-    const sec = (h, items) => `<section><div class="sec-h"><h2>${h}</h2>${h===(L.fut.length?'Анонси':'Новини')?whenHTML():''}</div><div class="list">${items.filter(i=>i.promo).map(evHTML).join('')}<div class="today"><b><i></i>${todayStr}</b></div>${byDay(items.filter(i=>!i.promo))}</div></section>`;
+    const sec = (h, items) => `<section><div class="sec-h"><h2>${h}</h2></div><div class="list">${items.filter(i=>i.promo).map(evHTML).join('')}<div class="today"><b><i></i>${todayStr}</b></div>${byDay(items.filter(i=>!i.promo))}</div></section>`;
     if (L.fut.length) feed += sec('Анонси', L.fut);
     if (L.past.length) feed += sec('Новини', L.past);
   }
@@ -1089,7 +1087,6 @@ document.addEventListener('click', e=>{
   if (act==='go'){ S.path = b.dataset.k ? b.dataset.k.split('/') : []; S.whereOpen=false; S.whereQ=''; }
   else if (act==='when'){ S.when=b.dataset.w; }
   else if (act==='kind'){ const k=b.dataset.k; S.lit=k==='lit'; if(!S.lit){ S.fut=k!=='past'; S.past=k!=='fut'; } }
-  else if (act==='litn'){ S.litN=+b.dataset.w; }
   else if (act==='litview'){ S.litView=b.dataset.k; }
   else if (act==='reset'){ S.path=[]; S.topics.clear(); S.when='all'; S.fut=S.past=true; S.q=''; S.lit=false; S.litN=7; S.litView='days'; S.langs=new Set(['u','e','x']); }
   else if (act==='side'){ S.side=!S.side; }
