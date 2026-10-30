@@ -992,7 +992,8 @@ footer .wrap{padding-block:20px}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
-const TODAY = new Date(2026, 9, 29);
+// today's date at midnight, so «сьогодні / завтра / через N дн.» stays right
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const MON = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
 const MONS = ['січ','лют','бер','кві','тра','чер','лип','сер','вер','жов','лис','гру'];
 const WD = ['неділя','понеділок','вівторок','середа','четвер','пʼятниця','субота'];
@@ -1273,7 +1274,8 @@ function cover(topic){
   const [a,b,art] = COVER[topic] || COVER['Свята'], id='g'+(uid++);
   return `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(topic)}"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="100" height="100" fill="url(#${id})"/>${art}</svg>`;
 }
-const pic = it => it.img ? `<img src="${it.img}" alt="${esc(it.title)}">` : cover(it.topic);
+// a picture from another site may fail to load: then the topic cover takes its place
+const pic = it => it.img ? `<img src="${it.img}" alt="${esc(it.title)}" data-f="${esc(cover(it.topic))}" onerror="this.outerHTML=this.dataset.f">` : cover(it.topic);
 const exTag = it => (it.own ? '<span class="ex own">ваша</span>' : it.ex ? '<span class="ex">приклад</span>' : '');
 function rel(it){ const n=days(it.date); return n===0?'сьогодні':n===1?'завтра':'через '+n+' дн.'; }
 function endStr(it){ if(it.d2){ const e=new Date(it.d2+'T12:00'); return ` – ${e.getDate()} ${MONS2[e.getMonth()]}${yr(e)}`+(it.t2?` ${it.t2}`:''); } return it.t2?`–${it.t2}`:''; }
