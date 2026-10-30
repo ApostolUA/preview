@@ -902,6 +902,7 @@ dialog::backdrop{background:rgba(8,15,30,.55)}
 .ico b{display:block;font-size:16px;color:var(--fg)}
 .row div{min-width:0}
 .row .t{font-weight:700}
+.maplnk{display:block;color:inherit;text-decoration:none}.maplnk:hover{color:var(--blue);text-decoration:underline}a.ico{text-decoration:none}a.ico:hover{border-color:var(--blue)}
 .row .s{color:var(--muted);font-size:14px}
 .tagt{align-self:flex-start;background:var(--blue-soft);border-radius:8px;padding:3px 12px;font-size:13px;font-weight:600}
 .dlg p{margin:0}
@@ -1317,6 +1318,8 @@ function cover(topic){
 const pic = it => it.img ? `<img src="${it.img}" alt="${esc(it.title)}" data-f="${esc(cover(it.topic))}" onerror="this.outerHTML=this.dataset.f">` : cover(it.topic);
 const exTag = it => (it.own ? '<span class="ex own">ваша</span>' : it.ex ? '<span class="ex">приклад</span>' : '');
 function rel(it){ const n=days(it.date); return n===0?'сьогодні':n===1?'завтра':'через '+n+' дн.'; }
+// the place opens in Google Maps: search by the address line, so the map shows the place itself
+const gmaps = it => 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(it.place||'');
 function endStr(it){ if(it.d2){ const e=new Date(it.d2+'T12:00'); return ` – ${e.getDate()} ${MONS2[e.getMonth()]}${yr(e)}`+(it.t2?` ${it.t2}`:''); } return it.t2?`–${it.t2}`:''; }
 function whenShort(it){ const d=it.date; return `${WDS[d.getDay()]}, ${d.getDate()} ${MONS2[d.getMonth()]}${yr(d)}`+(it.t?` · ${it.t}`:'')+endStr(it); }
 
@@ -1401,7 +1404,7 @@ function openItem(i){
     <span class="tagt">${it.fut?'Анонс':'Новина'} · ${esc(it.topic)}</span>
     <h2>${esc(it.title)}${exTag(it)}</h2>
     <div class="row"><div class="ico">${MONS2[d.getMonth()]}<b>${d.getDate()}</b></div><div><div class="t">${WD[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}${yr(d)}</div><div class="s">${it.t?esc(it.t):'час уточнюється'}${esc(endStr(it))}${it.fut?' · '+rel(it):''}</div></div></div>
-    <div class="row"><div class="ico">📍</div><div><div class="t">${esc(it.place)}</div><div class="s">${esc(pathName(it.path).join(' › '))}</div></div></div>
+    <div class="row"><a class="ico" href="${gmaps(it)}" target="_blank" rel="noopener" title="Відкрити в Google Картах">📍</a><div><a class="t maplnk" href="${gmaps(it)}" target="_blank" rel="noopener">${esc(it.place)}</a><div class="s">${esc(pathName(it.path).join(' › '))}</div></div></div>
     ${factsHTML(it)}
     ${it.text?`<p>${esc(it.text)}</p>`:''}
     ${it.url?`<a class="btn" style="align-self:flex-start" href="${esc(it.url)}" target="_blank" rel="noopener">Читати повністю</a>`:''}
