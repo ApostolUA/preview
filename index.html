@@ -161,6 +161,24 @@ h3.cap{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.07em;text-t
 .today b{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 14px;font-size:13.5px}
 .today.day b{background:none;border:0;padding:0 2px;color:var(--muted);font-weight:600}
 .today i{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 3px rgba(255,210,63,.3)}
+/* liturgy timetable: time, parish, language */
+.lrow{grid-column:1/-1;display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:14px;align-items:center;padding:4px 0}
+.lrow .tm{font-weight:800;font-size:18px;font-variant-numeric:tabular-nums}
+.lrow h4{margin:0;font-size:16px;font-weight:700;line-height:1.3}
+.lrow .pl{font-size:13.5px;color:var(--muted)}
+.lrow .pl a{color:var(--blue)}
+.lng{font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px;white-space:nowrap;background:var(--blue-soft);color:var(--blue)}
+.lng.en{background:var(--card-2);color:var(--fg)}
+.lnote{font-size:13px;color:var(--muted);margin:0}
+.lcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.lcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.lcard h4{margin:0;font-size:16px;font-weight:700}
+.lcard dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 14px;margin:0;font-size:14px}
+.lcard dt{color:var(--muted);font-weight:600}
+.lcard dd{margin:0;font-variant-numeric:tabular-nums}
+.lcard .pl{font-size:13px;color:var(--muted)}
+.lcard .pl a{color:var(--blue)}
+.lviews{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
 .none{border:1px dashed var(--line);border-radius:var(--r);padding:28px;text-align:center;color:var(--muted)}
 
 /* dialogs */
@@ -281,7 +299,7 @@ const PLACES = {
     frankivsk:{n:'Івано-Франківськ', p:{katedra:'Катедра Воскресіння Христового'}},
     zarvanytsia:{n:'Зарваниця', p:{centr:'Марійський духовний центр'}}}},
   ca:{n:'Канада', c:{
-    toronto:{n:'Торонто', p:{josaphat:'Катедра святого Йосафата', spp:'Святих апостолів Петра і Павла', illi:'Святого пророка Іллі', eparchy:'Торонтська єпархія', vocations:'Служіння покликань Торонтської єпархії', other:'Інші храми'}},
+    toronto:{n:'Торонто', p:{josaphat:'Катедра святого Йосафата', spp:'Святих апостолів Петра і Павла', illi:'Святого пророка Іллі', eparchy:'Торонтська єпархія', vocations:'Служіння покликань Торонтської єпархії', pokrova:'Покрови Пресвятої Богородиці', nicholas:'Святого Миколая', eucharist:'Пресвятої Євхаристії', dormition:'Успіння Пресвятої Богородиці (Bathurst)', demetrius:'Святого Димитрія, Етобіко', shepherd:'Христа Доброго Пастиря, Етобіко', volodymyr:'Святого Володимира, Торнгіл', joseph:'Святого Йосифа, Оквіл', pokrovab:'Покрови Пресвятої Богородиці, Берлінгтон', yuriya:'Святого Юрія, Ошава', other:'Інші храми'}},
     mississauga:{n:'Міссісага', p:{uspinnia:'Успіння Пресвятої Богородиці'}}}}
 };
 const TOPICS = ['Свята','Реколекції','Прощі та паломництва','Школа християнського життя','Спільноти','Проповіді','Духовна музика'];
@@ -352,7 +370,7 @@ const ITEMS = [
    place:'Святих апостолів Петра і Павла, Скарборо'}
 ].map(x => ({...x, date:new Date(x.d+'T12:00'), fut:new Date(x.d+'T12:00') >= TODAY}));
 
-const S = {path:[], when:'all', fut:true, past:true, topics:new Set(), q:'', whereQ:'', whereOpen:false, side:false};
+const S = {path:[], when:'all', fut:true, past:true, lit:false, litN:7, litView:'days', langs:new Set(['u','e','x']), topics:new Set(), q:'', whereQ:'', whereOpen:false, side:false};
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // whole calendar days from today (items carry a noon time, so compare midnights)
 // the year is shown only for dates outside the current year
@@ -375,7 +393,84 @@ function match(it, skip){
   }
   return true;
 }
-const countPath = p => ITEMS.filter(it => match(it,'path') && inPath(it,p)).length;
+const countPath = p => S.lit ? LIT.filter(l => litMatch(l,'path') && inPath(l,p)).length : ITEMS.filter(it => match(it,'path') && inPath(it,p)).length;
+
+// the «Літургії» count is the number of parishes with a known schedule
+// Regular Divine Liturgies in UGCC parishes of Toronto and the area, from parish sites and bulletins, checked 30.10.2026.
+// w: days of the week (0 = неділя); l: u = українською, e = англійською, b = обома, x = парафія мову не вказала
+const LIT_CHECKED = '30 жовтня 2026';
+const LIT = [
+ {path:['ca','toronto','josaphat'], a:'143 Franklin Ave, Торонто', src:['бюлетень 18.10.2026','https://saintjosaphat.com/content/bulletins/bulletin.pdf'],
+  r:[[[0],'9:00','x'],[[0],'11:00','x','з хором'],[[1,2,3,4,5],'8:00','x'],[[6],'17:00','x']]},
+ {path:['ca','toronto','pokrova'], a:'30 Leeds St, Торонто', src:['holyprotection.ca','https://holyprotection.ca/'],
+  r:[[[0],'8:00','x'],[[0],'9:30','x','трансляція'],[[0],'11:30','x'],[[0],'19:00','x'],[[1,2,3,4,5],'8:00','x'],[[1,2,3,4,5],'9:00','x']]},
+ {path:['ca','toronto','nicholas'], a:'4 Bellwoods Ave, Торонто', src:['saintnicholas.ca','https://saintnicholas.ca/'],
+  r:[[[0],'8:00','x'],[[0],'10:00','x'],[[0],'12:00','x']]},
+ {path:['ca','toronto','eucharist'], a:'515 Broadview Ave, Торонто', src:['бюлетень 11.10.2026','https://www.hagiaeucharistia.com/bulletin/'],
+  r:[[[0],'9:00','u'],[[0],'10:30','e']]},
+ {path:['ca','toronto','demetrius'], a:'135 La Rose Ave, Етобіко', src:['розклад парафії','https://stdemetriuschurch.com/schedule/'],
+  r:[[[0],'8:30','u'],[[0],'10:00','e'],[[0],'11:30','u'],[[1,2,3,4,5,6],'8:30','u'],[[6],'17:00','e']]},
+ {path:['ca','toronto','spp'], a:'1490 Markham Rd, Скарборо', src:['бюлетень 1.11.2026','https://stspeterandpaul.com/'],
+  r:[[[0],'9:00','u'],[[0],'10:30','e']]},
+ {path:['ca','mississauga','uspinnia'], a:'3625 Cawthra Rd, Міссісага', src:['stmaryscawthra.com','https://www.stmaryscawthra.com/'],
+  r:[[[0],'8:00','u'],[[0],'9:30','b'],[[0],'11:00','u'],[[0],'18:00','u'],[[1,2,3,4,5],'9:00','x'],[[1,2,3,4,5],'18:30','x'],[[6],'9:00','x'],[[6],'17:00','e']]},
+ {path:['ca','toronto','illi'], a:'10193 Heritage Rd, Бремптон', src:['розклад парафії','https://www.saintelias.com/services'],
+  r:[[[0],'10:00','x']]},
+ {path:['ca','toronto','joseph'], a:'300 River Oaks Blvd E, Оквіл', src:['sjucc.ca','https://www.sjucc.ca/'],
+  r:[[[0],'9:00','u'],[[0],'11:00','b']]},
+ {path:['ca','toronto','pokrovab'], a:'419 Pearl St, Берлінгтон', src:['розклад парафії','https://hpucc.ca/services.php?lang=en'],
+  r:[[[0],'9:00','e'],[[0],'10:30','u']]},
+ {path:['ca','toronto','yuriya'], a:'42 Lviv Blvd, Ошава', src:['сайт парафії','https://stgeorgethegreatmartyr.com/'],
+  r:[[[0],'9:30','u'],[[0],'11:00','e'],[[6],'17:00','b']]},
+];
+const LANG = {u:'укр', e:'англ', b:'укр і англ'};
+const langOn = l => l==='b' ? S.langs.has('u')||S.langs.has('e') : S.langs.has(l);
+const litName = l => pathName(l.path).slice(-1)[0];
+function litMatch(l, skip){
+  if (skip!=='path' && !inPath(l,S.path)) return false;
+  if (S.q.trim()){
+    const hay=(litName(l)+' '+l.a+' '+pathName(l.path).join(' ')).toLowerCase();
+    if(!S.q.toLowerCase().split(/\s+/).every(w => hay.includes(w.length>4 ? w.slice(0,-1) : w))) return false;
+  }
+  return true;
+}
+// every Liturgy in the next S.litN days, day by day and by the hour
+function litDays(){
+  const toMin = t => { const [h,m]=t.split(':'); return h*60 + +m; };
+  const out=[];
+  for (let k=0; k<S.litN; k++){
+    const d=new Date(TODAY); d.setDate(d.getDate()+k);
+    const rows=[];
+    LIT.filter(l=>litMatch(l)).forEach(l=>l.r.forEach(([w,t,lang,note])=>{ if (w.includes(d.getDay()) && langOn(lang)) rows.push({l,t,lang,note}); }));
+    rows.sort((a,b)=>toMin(a.t)-toMin(b.t));
+    if (rows.length) out.push([d,rows]);
+  }
+  return out;
+}
+// one card per parish with its week: неділя, будні, субота
+function litCardsHTML(views){
+  const toMin = t => { const [h,m]=t.split(':'); return h*60 + +m; };
+  const head=`<div class="sec-h"><h2>Літургії</h2>${views}</div>`;
+  const cards=LIT.filter(l=>litMatch(l)).map(l=>{
+    const rows=[['Неділя',[0]],['Будні',[1,2,3,4,5]],['Субота',[6]]].map(([g,ds])=>{
+      const rs=l.r.filter(([w,,lang])=>ds.some(d=>w.includes(d)) && langOn(lang)).sort((a,b)=>toMin(a[1])-toMin(b[1]));
+      return rs.length ? `<dt>${g}</dt><dd>${rs.map(([,t,lang])=>t+(LANG[lang]?` <span class="pl">${LANG[lang]}</span>`:'')).join(' · ')}</dd>` : '';
+    }).join('');
+    return rows ? `<article class="lcard"><div><h4>${esc(litName(l))}</h4><div class="pl">${esc(l.a)}</div></div><dl>${rows}</dl><div class="pl">Джерело: <a href="${l.src[1]}" target="_blank" rel="noopener">${esc(l.src[0])}</a></div></article>` : '';
+  }).join('');
+  return `<section>${head}`+(cards?`<div class="lcards">${cards}</div>`:`<div class="none">За цими фільтрами Літургій немає. Спробуйте інше місце або мову.</div>`)+`</section>`;
+}
+const litCount = () => litDays().reduce((n,[,r])=>n+r.length,0);
+function litHTML(){
+  const ds=litDays();
+  const views=`<div class="seg" role="group" aria-label="Як показати">`+[['days','По днях'],['parish','По парафіях']].map(([k,l])=>`<button data-act="litview" data-k="${k}" aria-pressed="${S.litView===k}">${l}</button>`).join('')+`</div>`;
+  if (S.litView==='parish') return litCardsHTML(views);
+  const head=`<div class="sec-h"><h2>Літургії</h2><div class="lviews">${views}<div class="seg" role="group" aria-label="Коли">`+[[1,'Сьогодні'],[7,'7 днів']].map(([n,l])=>`<button data-act="litn" data-w="${n}" aria-pressed="${S.litN===n}">${l}</button>`).join('')+`</div></div></div>`;
+  if (!ds.length) return `<section>${head}<div class="none">За цими фільтрами Літургій немає. Спробуйте інше місце або мову.</div></section>`;
+  return `<section>${head}<div class="list">`+ds.map(([d,rows])=>(days(d)===0?`<div class="today"><b><i></i>${todayStr}</b></div>`:`<div class="today day"><b>${dayLabel(d)}</b></div>`)
+    +rows.map(({l,t,lang,note})=>`<div class="lrow"><div class="tm">${t}</div><div style="min-width:0"><h4>${esc(litName(l))}${note?` <span class="pl">· ${esc(note)}</span>`:''}</h4><div class="pl">${esc(l.a)} · <a href="${l.src[1]}" target="_blank" rel="noopener">${esc(l.src[0])}</a></div></div>${LANG[lang]?`<span class="lng${lang==='e'?' en':''}">${LANG[lang]}</span>`:''}</div>`).join('')).join('')
+    +`</div></section>`;
+}
 const sameP = p => p.length===S.path.length && p.every((k,i)=>S.path[i]===k);
 
 function placeOpts(){
@@ -403,14 +498,18 @@ function whereHTML(){
 function filtersHTML(){
   const nf = ITEMS.filter(it=>match(it,'fut')&&it.fut).length, np = ITEMS.filter(it=>match(it,'fut')&&!it.fut).length;
   const topicCnt = t => ITEMS.filter(it=>match(it,'topic')&&it.topic===t).length;
-  return whereHTML()
-   +(`<div class="seg" role="group" aria-label="Що показати">${[['all','Усе',nf+np,S.fut&&S.past],['fut','Анонси',nf,S.fut&&!S.past],['past','Новини',np,S.past&&!S.fut]].map(([k,l,n,on])=>`<button data-act="kind" data-k="${k}" aria-pressed="${on}">${l} <span>${n}</span></button>`).join('')}</div>`)
+  const seg = `<div class="seg" role="group" aria-label="Що показати">${[['all','Усе',nf+np,!S.lit&&S.fut&&S.past],['fut','Анонси',nf,!S.lit&&S.fut&&!S.past],['past','Новини',np,!S.lit&&S.past&&!S.fut],['lit','Літургії',LIT.filter(l=>litMatch(l)).length,S.lit]].map(([k,l,n,on])=>`<button data-act="kind" data-k="${k}" aria-pressed="${on}">${l} <span>${n}</span></button>`).join('')}</div>`;
+  if (S.lit) return whereHTML() + seg
+   +`<div><h3 class="cap">Мова Служби</h3><div class="checks">`+[['u','Українською'],['e','Англійською'],['x','Мова не вказана']].map(([k,l])=>`<label class="chk"><input type="checkbox" id="lg-${k}" data-act="lang" data-t="${k}" ${S.langs.has(k)?'checked':''}>${l}</label>`).join('')+`</div></div>`
+   +`<p class="lnote">Розклад з сайтів і бюлетенів парафій, перевірено ${LIT_CHECKED}. На свята, у піст і влітку час буває інший.</p>`
+   +`<button class="reset" data-act="reset">Скинути всі фільтри</button>`;
+  return whereHTML() + seg
    +`<div><h3 class="cap">Тема</h3><div class="checks">`+TOPICS.map((t,i)=>`<label class="chk"><input type="checkbox" id="t-${i}" data-act="topic" data-t="${esc(t)}" ${S.topics.has(t)?'checked':''}>${esc(t)}<span class="cnt">${topicCnt(t)}</span></label>`).join('')+`</div></div>`
    +`<button class="reset" data-act="reset">Скинути всі фільтри</button>`;
 }
 // "when" filter sits in the header of the first feed section
 const whenHTML=()=>`<div class="seg" role="group" aria-label="Коли">`+[['all','Будь-коли'],['7','7 днів'],['30','30 днів']].map(([k,l])=>`<button data-act="when" data-w="${k}" aria-pressed="${S.when===k}">${l}</button>`).join('')+`</div>`;
-function activeN(){ return (S.path.length?1:0)+S.topics.size+(S.when!=='all'?1:0)+(S.fut&&S.past?0:1)+(S.q.trim()?1:0); }
+function activeN(){ return (S.lit?1+(3-S.langs.size):0)+(S.path.length?1:0)+S.topics.size+(S.when!=='all'?1:0)+(S.fut&&S.past?0:1)+(S.q.trim()?1:0); }
 function chipsHTML(){
   const c=[];
   if (S.path.length) c.push([pathName(S.path).join(' › '),'path']);
@@ -490,14 +589,15 @@ const logoHTML=()=>`<a class="logo" href="#">apostol<span class="u">.ua</span></
 
 // on phones the filters cover the feed: one button shows how many items match and goes back to them
 const nWord = n => n%10===1&&n%100!==11 ? 'подію' : [2,3,4].includes(n%10)&&![12,13,14].includes(n%100) ? 'події' : 'подій';
-const showBtn = () => { const n=ITEMS.filter(it=>match(it)).length; return `<button type="button" class="btn showres" data-act="showres">${n?`Показати ${n} ${nWord(n)}`:'Нічого не знайдено'}</button>`; };
+const showBtn = () => { if (S.lit){ const n=litCount(); return `<button type="button" class="btn showres" data-act="showres">${n?`Показати ${n} ${n%10===1&&n%100!==11?'Літургію':[2,3,4].includes(n%10)&&![12,13,14].includes(n%100)?'Літургії':'Літургій'}`:'Нічого не знайдено'}</button>`; } const n=ITEMS.filter(it=>match(it)).length; return `<button type="button" class="btn showres" data-act="showres">${n?`Показати ${n} ${nWord(n)}`:'Нічого не знайдено'}</button>`; };
 function sideWrap(inner){
   return `<button class="ftoggle" data-act="side" aria-expanded="${S.side}">Фільтри${activeN()?' ('+activeN()+')':''}</button><aside class="side${S.side?' open':''}">${inner}${showBtn()}</aside>`;
 }
 function page(){
   const L=lists();
   let feed = `<div><input class="search" id="q" type="search" aria-label="Пошук" placeholder="Пошук: реколекції, прощі, святий Миколай…" value="${esc(S.q)}">${chipsHTML()}</div>`;
-  if (!L.all.length) feed += `<div class="toprow">${whenHTML()}</div>` + emptyHTML;
+  if (S.lit) feed += litHTML();
+  else if (!L.all.length) feed += `<div class="toprow">${whenHTML()}</div>` + emptyHTML;
   else {
     const sec = (h, items) => `<section><div class="sec-h"><h2>${h}</h2>${h===(L.fut.length?'Анонси':'Новини')?whenHTML():''}</div><div class="list">${items.filter(i=>i.promo).map(evHTML).join('')}<div class="today"><b><i></i>${todayStr}</b></div>${byDay(items.filter(i=>!i.promo))}</div></section>`;
     if (L.fut.length) feed += sec('Анонси', L.fut);
@@ -988,8 +1088,10 @@ document.addEventListener('click', e=>{
   if (act==='close'){ b.closest('dialog').close(); return; }
   if (act==='go'){ S.path = b.dataset.k ? b.dataset.k.split('/') : []; S.whereOpen=false; S.whereQ=''; }
   else if (act==='when'){ S.when=b.dataset.w; }
-  else if (act==='kind'){ const k=b.dataset.k; S.fut=k!=='past'; S.past=k!=='fut'; }
-  else if (act==='reset'){ S.path=[]; S.topics.clear(); S.when='all'; S.fut=S.past=true; S.q=''; }
+  else if (act==='kind'){ const k=b.dataset.k; S.lit=k==='lit'; if(!S.lit){ S.fut=k!=='past'; S.past=k!=='fut'; } }
+  else if (act==='litn'){ S.litN=+b.dataset.w; }
+  else if (act==='litview'){ S.litView=b.dataset.k; }
+  else if (act==='reset'){ S.path=[]; S.topics.clear(); S.when='all'; S.fut=S.past=true; S.q=''; S.lit=false; S.litN=7; S.litView='days'; S.langs=new Set(['u','e','x']); }
   else if (act==='side'){ S.side=!S.side; }
   else if (act==='showres'){ S.side=false; render(); document.querySelector('.feed').scrollIntoView({block:'start'}); return; }
   else if (act==='unchip'){ const c=b.dataset.c; if(c==='path')S.path=[]; else if(c==='q')S.q=''; else S.topics.delete(c.slice(2)); }
@@ -1018,6 +1120,7 @@ document.addEventListener('change', e=>{
   if (t.id==='cf-par'){ document.getElementById('w-org').hidden = t.value!=='new'; if (t.value==='new') document.getElementById('cf-org').focus(); return; }
   if (t.id==='cf-topic' && !F.img){ document.getElementById('cf-pic').innerHTML = t.value ? cover(t.value) : shipCover(); return; }
   if (act==='topic') t.checked ? S.topics.add(t.dataset.t) : S.topics.delete(t.dataset.t);
+  else if (act==='lang') t.checked ? S.langs.add(t.dataset.t) : S.langs.delete(t.dataset.t);
   else return;
   render();
 });
