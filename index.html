@@ -1814,7 +1814,10 @@ function drawMap(id, big){
   MAPS[id]=map;
   if (big) L.control.zoom({position:'bottomright', zoomInTitle:'Наблизити', zoomOutTitle:'Віддалити'}).addTo(map);
   const dark=document.documentElement.dataset.theme==='dark';
-  const tiles=L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark?'dark_all':'light_all'}/{z}/{x}/{y}{r}.png`, {maxZoom:19, subdomains:'abcd', attribution:'© OpenStreetMap, © CARTO'}).addTo(map);
+  // Esri grey canvas: free without a key (CARTO tiles began asking for one); base plus a labels layer
+  const esri = n => `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_${dark?'Dark':'Light'}_Gray_${n}/MapServer/tile/{z}/{y}/{x}`;
+  const tiles=L.tileLayer(esri('Base'), {maxZoom:16, attribution:'© Esri, HERE, Garmin, © OpenStreetMap'}).addTo(map);
+  L.tileLayer(esri('Reference'), {maxZoom:16}).addTo(map);
   let warned=false;
   tiles.on('tileerror', ()=>{ if (warned) return; warned=true; el.insertAdjacentHTML('afterend', `<div class="mnote">${location.hostname.endsWith('apostol.ua')?'Підкладка карти не завантажилась.':'Тут підкладка карти не показується; на preview.apostol.ua вона буде.'}</div>`); });
   // one point per place; a place with several events lists them all
